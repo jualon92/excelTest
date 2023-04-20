@@ -5,50 +5,56 @@ import styles from "../styles/Home.module.css";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { LoadingButton } from "@mui/lab";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { useEffect, useState } from "react"; 
+import { useEffect, useState } from "react";
+import { Persona } from "../utils/interfaces";
 //@ts-ignore
-import * as XLSX from 'xlsx';
-
+import * as XLSX from "xlsx";
+import { PersonasSchemaValidation } from "../utils/validation";
+import useNotification from "../lib/useSnackbar";
 
 export default function Home() {
-  const [loading, setLoading] = useState(false)
-  let fileReader: FileReader   
+  const [loading, setLoading] = useState(false);
+  const [sheet, setSheet] = useState<Persona[]>([]);
+  const [msg, sendNotification] = useNotification();
 
-  useEffect(() => {
-     fileReader = new  FileReader()
-  }, [ ])
-  
-   
   const readExcel = async (file: any) => {
-    const fileReader = await new FileReader()
-    fileReader.readAsArrayBuffer(file)
+    let data = null;
+    const fileReader = await new FileReader();
+    fileReader.readAsArrayBuffer(file);
 
-    fileReader.onload = (e: any) => {
-      const bufferArray = e?.target.result
-      const wb = XLSX.read(bufferArray, { type: "buffer" })
-      const wsname = wb.SheetNames[0]
-      const ws = wb.Sheets[wsname]
+    fileReader.onload = async (e: any) => {
+      const bufferArray = e?.target.result;
+      const wb = XLSX.read(bufferArray, { type: "buffer" });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
 
-      const data = XLSX.utils.sheet_to_json(ws)
-      const fileName = file.name.split(".")[0]
+      //validate data
+      const rawData = XLSX.utils.sheet_to_json(ws);
 
-      console.log(data)
-    }
-  }
-
-  const handleOnSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target)
-    //@ts-ignore
-    const file = e.target.files[0]
-    const name = file.name
-    console.log("nnombre", name)
-    
-    readExcel(file)
-  }
+      try {
+        const data = await PersonasSchemaValidation.validate(rawData);
+        sendNotification({
+          msg: `subida exitosamente.`,
+          variant: "success",
+        });
 
 
+      } catch (err) {
+        sendNotification({
+          msg: `formato de tabla incorrecto`,
+          variant: "error",
+        });
+      }
 
-  
+
+    };
+  };
+
+  const handleOnSubmit = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      readExcel(e.target.files?.[0]);
+ 
+  };
+
   return (
     <>
       <Head>
@@ -71,7 +77,7 @@ export default function Home() {
           variant="contained"
           component="label"
         >
-          IMPORTAR CSV 
+          UPLOAD EXCEL SHEET
           <input
             onChange={(e) => handleOnSubmit(e)}
             hidden
