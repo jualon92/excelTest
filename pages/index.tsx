@@ -1,11 +1,54 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import { Inter } from "next/font/google";
+import styles from "../styles/Home.module.css";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { LoadingButton } from "@mui/lab";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useEffect, useState } from "react"; 
+//@ts-ignore
+import * as XLSX from 'xlsx';
 
-const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  const [loading, setLoading] = useState(false)
+  let fileReader: FileReader   
+
+  useEffect(() => {
+     fileReader = new  FileReader()
+  }, [ ])
+  
+   
+  const readExcel = async (file: any) => {
+    const fileReader = await new FileReader()
+    fileReader.readAsArrayBuffer(file)
+
+    fileReader.onload = (e: any) => {
+      const bufferArray = e?.target.result
+      const wb = XLSX.read(bufferArray, { type: "buffer" })
+      const wsname = wb.SheetNames[0]
+      const ws = wb.Sheets[wsname]
+
+      const data = XLSX.utils.sheet_to_json(ws)
+      const fileName = file.name.split(".")[0]
+
+      console.log(data)
+    }
+  }
+
+  const handleOnSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target)
+    //@ts-ignore
+    const file = e.target.files[0]
+    const name = file.name
+    console.log("nnombre", name)
+    
+    readExcel(file)
+  }
+
+
+
+  
   return (
     <>
       <Head>
@@ -16,7 +59,28 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <h1>hola mundo</h1>
+
+        <LoadingButton
+          sx={{
+            minHeight: "41px",
+            border: "1px solid transparent",
+          }}
+          loading={loading}
+          loadingPosition="start"
+          startIcon={<CloudUploadIcon />}
+          variant="contained"
+          component="label"
+        >
+          IMPORTAR CSV 
+          <input
+            onChange={(e) => handleOnSubmit(e)}
+            hidden
+            accept=".xlsx"
+            multiple
+            type="file"
+          />
+        </LoadingButton>
       </main>
     </>
-  )
+  );
 }
