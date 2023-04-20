@@ -39,6 +39,7 @@ export default function Home() {
           (r) => console.log(r)
         );
 
+        console.log("pepes")
         const duplicates = _(rawData)
           .filter((i) => !isNaN(i.id))
           .groupBy("id")
@@ -51,7 +52,10 @@ export default function Home() {
           }))
           .value();
 
-        
+         console.log("duplicates", duplicates)
+         const elementsWithNoID = rawData.filter(e => e.id === undefined)
+         console.log("elements with no id",  elementsWithNoID)
+          
 
         sendNotification({
           msg: `subida exitosamente.`,
