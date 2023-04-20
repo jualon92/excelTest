@@ -11,48 +11,63 @@ import { Persona } from "../utils/interfaces";
 import * as XLSX from "xlsx";
 import { PersonasSchemaValidation } from "../utils/validation";
 import useNotification from "../lib/useSnackbar";
+import { map, tail, times, uniq } from "lodash";
+import _ from "lodash";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [sheet, setSheet] = useState<Persona[]>([]);
   const [msg, sendNotification] = useNotification();
 
+  const getJSONFromSheet = (e) => {
+    const bufferArray = e?.target.result;
+    const wb = XLSX.read(bufferArray, { type: "buffer" });
+    const wsname = wb.SheetNames[0];
+    const ws = wb.Sheets[wsname];
+
+    return XLSX.utils.sheet_to_json(ws);
+  };
+
   const readExcel = async (file: any) => {
-    let data = null;
-    const fileReader = await new FileReader();
+    const fileReader = new FileReader();
     fileReader.readAsArrayBuffer(file);
 
     fileReader.onload = async (e: any) => {
-      const bufferArray = e?.target.result;
-      const wb = XLSX.read(bufferArray, { type: "buffer" });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-
-      //validate data
-      const rawData = XLSX.utils.sheet_to_json(ws);
-
+      const rawData = getJSONFromSheet(e);
       try {
-        const data = await PersonasSchemaValidation.validate(rawData);
+        const data = await PersonasSchemaValidation.validate(rawData).then(
+          (r) => console.log(r)
+        );
+
+        const duplicates = _(rawData)
+          .filter((i) => !isNaN(i.id))
+          .groupBy("id")
+          .filter((o) => o.length > 1) // remove groups that have less than two members
+          .map(x => ({
+            id: x[0].id,
+            first_name: x[0].first_name,
+            last_name: x[0].last_name, 
+            amount: _.sumBy(x, x => x.amount)
+          }))
+          .value();
+
+        
+
         sendNotification({
           msg: `subida exitosamente.`,
           variant: "success",
         });
-
-
       } catch (err) {
         sendNotification({
           msg: `formato de tabla incorrecto`,
           variant: "error",
         });
       }
-
-
     };
   };
 
   const handleOnSubmit = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      readExcel(e.target.files?.[0]);
- 
+    readExcel(e.target.files?.[0]);
   };
 
   return (
