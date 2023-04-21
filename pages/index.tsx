@@ -5,103 +5,53 @@ import styles from "../styles/Home.module.css";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { LoadingButton } from "@mui/lab";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Persona } from "../utils/interfaces";
-//@ts-ignore 
+//@ts-ignore
 import { PersonasSchemaValidation } from "../utils/validation";
 import useNotification from "../lib/useSnackbar";
 import { map, tail, times, uniq } from "lodash";
 import _ from "lodash";
-import { sort_by_id } from "../utils"; 
+import { sort_by_id } from "../utils";
 
-import * as XLSX from "xlsx-js-style" 
+import * as XLSX from "xlsx-js-style";
+import { buildExcelPersonas, getJSONFromSheet} from "../utils/xlsx";
 
 export default function Home() {
-  const [loading, setLoading] = useState(false);
-  const [sheet, setSheet] = useState<Persona[]>([]);
+  const [loading, setLoading] = useState(false); 
   const [msg, sendNotification] = useNotification();
 
-  const getJSONFromSheet = (e) => {
-    const bufferArray = e?.target.result;
-    const wb = XLSX.read(bufferArray, { type: "buffer" });
-    const wsname = wb.SheetNames[0];
-    const ws = wb.Sheets[wsname];
+  
 
-    return XLSX.utils.sheet_to_json(ws);
-  };
-
-  const downloadExcelPersonas = (duplicatesArray, noIDFieldArray) => {
-    const listaPersonas = duplicatesArray.concat(noIDFieldArray);
-
-    const Heading = [["id", "first_name", "last_name", "amount"]];
-    const wb = XLSX.utils.book_new();
-
-    const ws = XLSX.utils.json_to_sheet([]);
-    XLSX.utils.sheet_add_aoa(ws, Heading);
-    XLSX.utils.sheet_add_json(ws, listaPersonas, {
-      origin: "A2",
-      skipHeader: true,
-    });
-
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    let i  
-    for (i = 2; i <=  listaPersonas.length + 1 ; i++) {
-      if (wb.Sheets["Sheet1"]["A" + i] == undefined){
-        wb.Sheets["Sheet1"]["A" + i] = { t:"s", v:"", s: { fill: { fgColor: { rgb: "C0504D" } } }}
-        wb.Sheets["Sheet1"]["B" + i].s =  { fill: { fgColor: { rgb: "C0504D" } } }
-        wb.Sheets["Sheet1"]["C" + i].s =  { fill: { fgColor: { rgb: "C0504D" } } }
-        wb.Sheets["Sheet1"]["D" + i].s =  { fill: { fgColor: { rgb: "C0504D" } } }
-      } 
-      }
-
-    XLSX.writeFile(wb, "MOCK_DATA_BDO_FINAL.xlsx");
-  };
-
-  const readExcel = async (file: any) => {
+  const readExcel = async (file: ChangeEvent<HTMLInputElement>) => {
+    //init file reader
     const fileReader = new FileReader();
-    fileReader.readAsArrayBuffer(file);
+    const targetFile = (file.target as HTMLInputElement)?.files?.[0]
+    if (targetFile){
+      fileReader.readAsArrayBuffer(targetFile);
+    }
+     
 
-    fileReader.onload = async (e: any) => {
-      const rawData = getJSONFromSheet(e);
+    fileReader.onload = async (e) => {
+      const rawData: Persona[] = getJSONFromSheet(e);
       try {
-        const data = await PersonasSchemaValidation.validate(rawData).then(
-          (r) => console.log(r)
-        );
-
-        const duplicates = _(rawData)
-          .filter((i) => !isNaN(i.id))
-          .groupBy("id")
-          .filter((o) => o.length > 1) // remove groups that have less than two members
-          .map((x) => ({
-            id: x[0].id,
-            first_name: x[0].first_name,
-            last_name: x[0].last_name,
-            amount: _.sumBy(x, (x) => x.amount),
-          }))
-          .value();
-
-        console.log("duplicates", duplicates);
-        const elementsWithNoID = rawData.filter((e) => e.id === undefined);
-        console.log("elements with no id", elementsWithNoID);
-
-        downloadExcelPersonas(duplicates, elementsWithNoID);
+        await PersonasSchemaValidation.validate(rawData) 
+        buildExcelPersonas(rawData);
 
         sendNotification({
-          msg: `subida exitosamente.`,
+          msg: `archivo descargado `,
           variant: "success",
         });
       } catch (err) {
         sendNotification({
-          msg: `formato de tabla incorrecto`,
+          msg: `formato de archivo incompatible.`,
           variant: "error",
         });
       }
     };
   };
 
-  const handleOnSubmit = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    readExcel(e.target.files?.[0]);
-  };
+   
 
   return (
     <>
@@ -112,11 +62,11 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <h1>hola mundo</h1>
+        <h1>Excel </h1>
 
         <LoadingButton
           sx={{
-            minHeight: "41px",
+            minHeight: "51px",
             border: "1px solid transparent",
           }}
           loading={loading}
@@ -127,7 +77,7 @@ export default function Home() {
         >
           UPLOAD EXCEL SHEET
           <input
-            onChange={(e) => handleOnSubmit(e)}
+            onChange={readExcel}
             hidden
             accept=".xlsx"
             multiple
