@@ -8,7 +8,7 @@ import { Persona } from "../utils/interfaces";
 import { PersonasSchemaValidation } from "../utils/validation";
 import useNotification from "../lib/useSnackbar";
 import { Inter } from 'next/font/google'
-import { buildExcelPersonas } from "../utils/xlsx";
+import { buildExcelPersonas, buildNormalizedExcel } from "../utils/xlsx";
 //@ts-ignore
 import * as XLSX from "xlsx-js-style";
 import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Typography, Box } from "@mui/material";
@@ -32,7 +32,7 @@ export default function Home() {
 
 
 
-  const readExcel = async (e: ChangeEvent<HTMLInputElement>) => {
+  const readExcel = async (e: ChangeEvent<HTMLInputElement>, buildFunction) => {
     //init file reader
     const fileReader = new FileReader();
     const targetFile = (e.target as HTMLInputElement)?.files?.[0]
@@ -45,7 +45,7 @@ export default function Home() {
       const rawData: Persona[] = getJSONFromSheet(e);
       try {
         await PersonasSchemaValidation.validate(rawData)
-        buildExcelPersonas(rawData);
+        buildFunction(rawData);
 
         sendNotification({
           msg: `archivo descargado `,
@@ -72,20 +72,7 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
 
-        <Box>
 
-          <Typography variant="h4" mb={1.5}>
-            Goals:
-            <ul>
-              <li>Extract elements appearing more than once </li>
-              <li>Extract elements without an id</li>
-              <li> Show repeated elements, taking into account: element.amount = total sum of amounts between elements sharing the same id
-              </li> 
-              <li>Style cells without an id number as red. </li>
-             
-            </ul>
-          </Typography>
-        </Box>
 
         <Box>
 
@@ -95,6 +82,23 @@ export default function Home() {
 
           <Image src={cellImage} alt="excel debe contener columnas id, nombre, apellido y monto" />
         </Box>
+
+
+        <Box>
+
+          <Typography variant="h4" mb={1.5}>
+            Goals:
+            <ul>
+              <li>Extract elements appearing more than once </li>
+              <li>Extract elements without an id</li>
+              <li> Show in sheet elements appearing more than once, taking into account: element.amount = total sum of amounts between elements sharing the same id
+              </li>
+              <li>Show in sheet elements with an empty id field. Style respective cells as red. </li>
+
+            </ul>
+          </Typography>
+        </Box>
+
         <LoadingButton
           sx={{
             minHeight: "51px",
@@ -106,9 +110,67 @@ export default function Home() {
           variant="contained"
           component="label"
         >
-          UPLOAD XLSX FILE
+          GET EXCEL FILE
           <input
-            onChange={readExcel}
+            onChange={(e) => readExcel(e, buildExcelPersonas)}
+            hidden
+            accept=".xlsx, .xls"
+            multiple
+            type="file"
+          />
+        </LoadingButton>
+
+
+
+
+        <Box>
+
+<Typography variant="h4" mb={1.5}>
+  Personal take: 
+  </Typography>
+  
+  
+<Typography variant="h5" mb={0.5}>
+  Management Requirements: 
+  </Typography>
+  <ul>
+    <li>
+  making sure users wont forget adding the id field</li>
+    <li>
+  if the same person is added more than once, sum their amount shared between elements with the same id 
+</li>
+  </ul>  
+
+  
+<Typography variant="h5" mb={0.5} mt={1.5} >
+  Steps
+  </Typography>
+   <ul>
+    <li>Show in sheet all the valid elements</li>
+    <li>Repeated elements should show only once, their amount is the total sum between elements sharing the same id</li>
+    <li>Elements with empty id should show in red, as a visual hint (warning)</li>
+
+     
+    
+    
+  </ul>
+ 
+</Box>
+
+        <LoadingButton
+          sx={{
+            minHeight: "51px",
+            border: "1px solid transparent",
+          }}
+          loading={loading}
+          loadingPosition="start"
+          startIcon={<CloudUploadIcon />}
+          variant="contained"
+          component="label"
+        >
+          GET NORMALIZED EXCEL FILE
+          <input
+            onChange={(e) => readExcel(e, buildNormalizedExcel)}
             hidden
             accept=".xlsx"
             multiple
