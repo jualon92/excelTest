@@ -13,6 +13,7 @@ import { PersonasSchemaValidation } from "../utils/validation";
 import useNotification from "../lib/useSnackbar";
 import { map, tail, times, uniq } from "lodash";
 import _ from "lodash";
+import { sort_by_id } from "../utils";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,23 @@ export default function Home() {
     return XLSX.utils.sheet_to_json(ws);
   };
 
+  const downloadExcelPersonas = (duplicatesArray, noIDFieldArray) => {
+    const listaPersonas = duplicatesArray.concat(noIDFieldArray) 
+
+    const Heading = [["id", "first_name", "last_name", "amount"]];
+    const wb = XLSX.utils.book_new();
+
+    const ws = XLSX.utils.json_to_sheet([]);
+    XLSX.utils.sheet_add_aoa(ws, Heading);
+    XLSX.utils.sheet_add_json(ws, listaPersonas, {
+      origin: "A2",
+      skipHeader: true,
+    });
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, "MOCK_DATA_BDO_FINAL.xlsx");
+  };
+
   const readExcel = async (file: any) => {
     const fileReader = new FileReader();
     fileReader.readAsArrayBuffer(file);
@@ -39,23 +57,23 @@ export default function Home() {
           (r) => console.log(r)
         );
 
-        console.log("pepes")
         const duplicates = _(rawData)
           .filter((i) => !isNaN(i.id))
           .groupBy("id")
           .filter((o) => o.length > 1) // remove groups that have less than two members
-          .map(x => ({
+          .map((x) => ({
             id: x[0].id,
             first_name: x[0].first_name,
-            last_name: x[0].last_name, 
-            amount: _.sumBy(x, x => x.amount)
+            last_name: x[0].last_name,
+            amount: _.sumBy(x, (x) => x.amount),
           }))
           .value();
 
-         console.log("duplicates", duplicates)
-         const elementsWithNoID = rawData.filter(e => e.id === undefined)
-         console.log("elements with no id",  elementsWithNoID)
-          
+        console.log("duplicates", duplicates);
+        const elementsWithNoID = rawData.filter((e) => e.id === undefined);
+        console.log("elements with no id", elementsWithNoID);
+
+        downloadExcelPersonas(duplicates, elementsWithNoID);
 
         sendNotification({
           msg: `subida exitosamente.`,
