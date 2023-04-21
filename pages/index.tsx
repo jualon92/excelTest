@@ -1,45 +1,50 @@
 import Head from "next/head";
-import Image from "next/image"; 
-import styles from "../styles/Home.module.css"; 
+import Image from "next/image";
+import styles from "../styles/Home.module.css";
 import { LoadingButton } from "@mui/lab";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { ChangeEvent,   useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Persona } from "../utils/interfaces";
-//@ts-ignore
 import { PersonasSchemaValidation } from "../utils/validation";
-import useNotification from "../lib/useSnackbar";  
+import useNotification from "../lib/useSnackbar";
+import { Inter } from 'next/font/google'
 import { buildExcelPersonas } from "../utils/xlsx";
+//@ts-ignore
 import * as XLSX from "xlsx-js-style";
+import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Typography, Box } from "@mui/material";
+import cellImage from "../public/assets/cell_format.png"
+
+const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const [msg, sendNotification] = useNotification();
 
-  
+
   const getJSONFromSheet = (e: ProgressEvent<FileReader>): Persona[] => {
     const bufferArray = e?.target?.result;
     const wb = XLSX.read(bufferArray, { type: "buffer" });
     const wsname = wb.SheetNames[0];
     const ws = wb.Sheets[wsname];
-  
+
     return XLSX.utils.sheet_to_json(ws);
   };
-  
 
 
-  const readExcel = async (file: ChangeEvent<HTMLInputElement>) => {
+
+  const readExcel = async (e: ChangeEvent<HTMLInputElement>) => {
     //init file reader
     const fileReader = new FileReader();
-    const targetFile = (file.target as HTMLInputElement)?.files?.[0]
-    if (targetFile){
+    const targetFile = (e.target as HTMLInputElement)?.files?.[0]
+    if (targetFile) {
       fileReader.readAsArrayBuffer(targetFile);
     }
-     
+
 
     fileReader.onload = async (e) => {
       const rawData: Persona[] = getJSONFromSheet(e);
       try {
-        await PersonasSchemaValidation.validate(rawData) 
+        await PersonasSchemaValidation.validate(rawData)
         buildExcelPersonas(rawData);
 
         sendNotification({
@@ -55,7 +60,7 @@ export default function Home() {
     };
   };
 
-   
+
 
   return (
     <>
@@ -66,8 +71,30 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <h1>Excel </h1>
 
+        <Box>
+
+          <Typography variant="h4" mb={1.5}>
+            Goals:
+            <ul>
+              <li>Extract elements appearing more than once </li>
+              <li>Extract elements without an id</li>
+              <li> Show repeated elements, taking into account: element.amount = total sum of amounts between elements sharing the same id
+              </li> 
+              <li>Style cells without an id number as red. </li>
+             
+            </ul>
+          </Typography>
+        </Box>
+
+        <Box>
+
+          <Typography variant="h4" mb={1.5}>
+            Sheet Schema
+          </Typography>
+
+          <Image src={cellImage} alt="excel debe contener columnas id, nombre, apellido y monto" />
+        </Box>
         <LoadingButton
           sx={{
             minHeight: "51px",
@@ -79,7 +106,7 @@ export default function Home() {
           variant="contained"
           component="label"
         >
-          UPLOAD EXCEL SHEET
+          UPLOAD XLSX FILE
           <input
             onChange={readExcel}
             hidden
