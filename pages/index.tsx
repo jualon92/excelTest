@@ -133,7 +133,7 @@ export default function Home() {
           </Typography>
 
           <Typography variant="h5" mb={0.5}>
-            Management Requirements:
+            Management Requires
           </Typography>
           <ul>
             <li>making sure users wont forget adding the id field</li>
