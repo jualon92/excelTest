@@ -7,13 +7,14 @@ import { LoadingButton } from "@mui/lab";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useEffect, useState } from "react";
 import { Persona } from "../utils/interfaces";
-//@ts-ignore
-import * as XLSX from "xlsx";
+//@ts-ignore 
 import { PersonasSchemaValidation } from "../utils/validation";
 import useNotification from "../lib/useSnackbar";
 import { map, tail, times, uniq } from "lodash";
 import _ from "lodash";
-import { sort_by_id } from "../utils";
+import { sort_by_id } from "../utils"; 
+
+import * as XLSX from "xlsx-js-style" 
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function Home() {
   };
 
   const downloadExcelPersonas = (duplicatesArray, noIDFieldArray) => {
-    const listaPersonas = duplicatesArray.concat(noIDFieldArray) 
+    const listaPersonas = duplicatesArray.concat(noIDFieldArray);
 
     const Heading = [["id", "first_name", "last_name", "amount"]];
     const wb = XLSX.utils.book_new();
@@ -41,8 +42,18 @@ export default function Home() {
       origin: "A2",
       skipHeader: true,
     });
-    
+
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    let i  
+    for (i = 2; i <=  listaPersonas.length + 1 ; i++) {
+      if (wb.Sheets["Sheet1"]["A" + i] == undefined){
+        wb.Sheets["Sheet1"]["A" + i] = { t:"s", v:"", s: { fill: { fgColor: { rgb: "C0504D" } } }}
+        wb.Sheets["Sheet1"]["B" + i].s =  { fill: { fgColor: { rgb: "C0504D" } } }
+        wb.Sheets["Sheet1"]["C" + i].s =  { fill: { fgColor: { rgb: "C0504D" } } }
+        wb.Sheets["Sheet1"]["D" + i].s =  { fill: { fgColor: { rgb: "C0504D" } } }
+      } 
+      }
+
     XLSX.writeFile(wb, "MOCK_DATA_BDO_FINAL.xlsx");
   };
 
