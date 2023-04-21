@@ -71,12 +71,3 @@ export const buildExcelPersonas = (rawData: Persona[]) => {
 };
 
  
-export const getJSONFromSheet = (e: ProgressEvent<FileReader>): Persona[] => {
-    const bufferArray = e?.target?.result;
-    const wb = XLSX.read(bufferArray, { type: "buffer" });
-    const wsname = wb.SheetNames[0];
-    const ws = wb.Sheets[wsname];
-  
-    return XLSX.utils.sheet_to_json(ws);
-  };
-  

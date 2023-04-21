@@ -1,27 +1,31 @@
 import Head from "next/head";
-import Image from "next/image";
-import { Inter } from "next/font/google";
-import styles from "../styles/Home.module.css";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import Image from "next/image"; 
+import styles from "../styles/Home.module.css"; 
 import { LoadingButton } from "@mui/lab";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent,   useState } from "react";
 import { Persona } from "../utils/interfaces";
 //@ts-ignore
 import { PersonasSchemaValidation } from "../utils/validation";
-import useNotification from "../lib/useSnackbar";
-import { map, tail, times, uniq } from "lodash";
-import _ from "lodash";
-import { sort_by_id } from "../utils";
-
+import useNotification from "../lib/useSnackbar";  
+import { buildExcelPersonas } from "../utils/xlsx";
 import * as XLSX from "xlsx-js-style";
-import { buildExcelPersonas, getJSONFromSheet} from "../utils/xlsx";
 
 export default function Home() {
   const [loading, setLoading] = useState(false); 
   const [msg, sendNotification] = useNotification();
 
   
+  const getJSONFromSheet = (e: ProgressEvent<FileReader>): Persona[] => {
+    const bufferArray = e?.target?.result;
+    const wb = XLSX.read(bufferArray, { type: "buffer" });
+    const wsname = wb.SheetNames[0];
+    const ws = wb.Sheets[wsname];
+  
+    return XLSX.utils.sheet_to_json(ws);
+  };
+  
+
 
   const readExcel = async (file: ChangeEvent<HTMLInputElement>) => {
     //init file reader
