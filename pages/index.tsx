@@ -98,7 +98,7 @@ export default function Home() {
             sharing the same id
           </li>
           <li>
-            Show in sheet elements with an empty id field. Style respective
+            Add all elements with an empty id field to a newly created sheet. Style respective
             cells as red.{" "}
           </li>
         </ul>
