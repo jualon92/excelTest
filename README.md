@@ -1,11 +1,10 @@
  
-## Comenzar proyecto
+# Comenzar proyecto
 
 First, run the development server:
-
-```bash
+ 
 npm run dev
-# o
+ 
 yarn dev
  
 
@@ -23,13 +22,13 @@ Se utilizo npx create-next-app@latest para esqueleto de proyecto(se eligio utili
 
 ### Trabajar con datos obtenidos
 1. Comprobar la integridad de los datos. Dentro de try catch se valida con Yup.
-2. Libreria notistack para mostrar a usuario si paso o no la validacion 
+2. Libreria notistack para notificar a usuario si paso o no la validacion 
 3. Al pasar validacion,  se comienza a construir tabla  (opte por mover  logica de construir tabla a xlsx.ts)
-4. al construir  tabla, segun interpretacion de consigna se utilizan dos listas. Los elementos que aparecieron mas de una vez segun su id, 
+4. Para construir tabla se utilizan los elementos que aparecieron mas de una vez segun su id, 
 y los elementos sin id . 
 5. luego de construir la tabla en base a ambas lista, se procede a colorear las celdas sin id. Respecto a styling, se procedio a utilizar una libreria basada en xlsx que si soporta styling 
 
-##Extra
+## Extra
 #### Adaptar la consigna a un desafio laboral, app como excel checker
 El objetivo de la app  pasa a ser un editor de excel que devuelve una tabla que remarca errores y permite aumentar montos sin tener que editar el monto de esa persona.
 1. a las personas con campos incompletos marcarlos en rojo, y ubicarlos en cierta posicion 
