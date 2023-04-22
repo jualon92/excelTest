@@ -1,7 +1,6 @@
  
 # Comenzar proyecto
 
-First, run the development server:
  
 npm run dev
  
@@ -10,7 +9,11 @@ yarn dev
 
 Abrir [http://localhost:3000](http://localhost:3000) 
  
- 
+# Ejemplo en vercel
+
+https://excel-test-omega.vercel.app/
+
+
 ## Como se realizo el proyecto
 Se inicializo con git init un repo,  git remote add origin url   
 Se utilizo npx create-next-app@latest para esqueleto de proyecto(se eligio utilizar typescript, eslint,)  [https://nextjs.org/docs/api-reference/create-next-app]
@@ -48,7 +51,7 @@ La tabla resultante tendra una unica entrada con los datos de la persona, y un m
  - notistack: notificaciones a usuario(paso validacion, no paso). Estaria bueno expandir para mensajes de error
  - lodash: funciones auxiliares  groupBy, sumBy
  
-##Pendientes
+## Pendientes
  - y si el usuario pudiese elegir que busca chequear? 
  - Notificaciones con mensaje de error basados en validador 
  - Usuario puede generar propio mock desde app 
